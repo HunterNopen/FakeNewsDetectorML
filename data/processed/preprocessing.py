@@ -16,9 +16,9 @@ data = pd.concat([fake_news, true_news], ignore_index=True)
 data = data.dropna(subset=["text"])
 data = data[data["text"].str.strip() != ""]
 
-samples = 1000
+#samples = 1000
 data = data.sample(frac=1, random_state=42).reset_index(drop=True)
-data = data.sample(n=samples, random_state=42).reset_index(drop=True)
+#data = data.sample(n=samples, random_state=42).reset_index(drop=True)
 
 def clean_text(text):
     text = re.sub(r"http\S+", "", text)
