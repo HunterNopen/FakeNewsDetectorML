@@ -1,20 +1,16 @@
-from transformers import RobertaTokenizer, RobertaForSequenceClassification, Trainer, TrainingArguments
+from transformers import AlbertTokenizer, AlbertModel, AlbertForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
 import pandas as pd
 
-print("Getting model...")
+MODEL_NAME = "XSY/albert-base-v2-fakenews-discriminator"
 
-MODEL_NAME = "hamzab/roberta-fake-news-classification"
-tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
-model = RobertaForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
-
+tokenizer = AlbertTokenizer.from_pretrained(MODEL_NAME)
+model = AlbertForSequenceClassification.from_pretrained(MODEL_NAME)
 
 print("Getting data...")
 train_data = pd.read_csv("../../data/processed/train.csv")
 val_data = pd.read_csv("../../data/processed/validation.csv")
 test_data = pd.read_csv("../../data/processed/test.csv")
-
-print(train_data.shape)
 
 train_data = train_data.dropna(subset=["text"])
 train_data = train_data[train_data["text"].str.strip() != ""]
@@ -73,3 +69,4 @@ trainer.train()
 model.save_pretrained("../outputs/roberta-fine-tuned")
 
 tokenizer.save_pretrained("../outputs/roberta-fine-tuned-tokenizer")
+

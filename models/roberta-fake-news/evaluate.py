@@ -1,5 +1,6 @@
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from sklearn.metrics import classification_report
+import pandas as pd
 import torch
 
 MODEL_PATH = "models/outputs/roberta-fine-tuned"
