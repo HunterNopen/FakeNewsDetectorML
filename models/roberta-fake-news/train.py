@@ -1,6 +1,11 @@
 from transformers import RobertaTokenizer, RobertaForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
 import pandas as pd
+import torch
+
+print("PyTorch version:", torch.__version__)
+print("CUDA available:", torch.cuda.is_available())
+print("CUDA version:", torch.version.cuda)
 
 print("Getting model...")
 
@@ -13,8 +18,6 @@ print("Getting data...")
 train_data = pd.read_csv("../../data/processed/train.csv")
 val_data = pd.read_csv("../../data/processed/validation.csv")
 test_data = pd.read_csv("../../data/processed/test.csv")
-
-print(train_data.shape)
 
 train_data = train_data.dropna(subset=["text"])
 train_data = train_data[train_data["text"].str.strip() != ""]
@@ -46,14 +49,14 @@ val_dataset = val_dataset.with_format("torch")
 test_dataset = test_dataset.with_format("torch")
 
 training_args = TrainingArguments(
-    output_dir="models/outputs",
+    output_dir="./outputs",
     evaluation_strategy="epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=16,
     per_device_eval_batch_size=16,
     num_train_epochs=3,
     weight_decay=0.01,
-    logging_dir="models/outputs/logs",
+    logging_dir="./outputs/logs",
     save_strategy="epoch",
     save_total_limit=2
 )

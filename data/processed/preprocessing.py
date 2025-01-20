@@ -13,6 +13,9 @@ true_news['label'] = 0
 
 data = pd.concat([fake_news, true_news], ignore_index=True)
 
+data = data.dropna(subset=["text"])
+data = data[data["text"].str.strip() != ""]
+
 samples = 1000
 data = data.sample(frac=1, random_state=42).reset_index(drop=True)
 data = data.sample(n=samples, random_state=42).reset_index(drop=True)
@@ -25,6 +28,8 @@ def clean_text(text):
     stop_words = set(stopwords.words("english"))
     text = [word for word in text if word not in stop_words]
     return " ".join(text)
+
+
 
 print("Cleaning text...")
 data['text'] = data['text'].apply(clean_text)

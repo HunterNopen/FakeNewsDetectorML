@@ -1,6 +1,9 @@
 from transformers import AlbertTokenizer, AlbertModel, AlbertForSequenceClassification, Trainer, TrainingArguments
 from datasets import Dataset
 import pandas as pd
+import torch
+
+print("GPU Available:", torch.cuda.is_available())
 
 MODEL_NAME = "XSY/albert-base-v2-fakenews-discriminator"
 
