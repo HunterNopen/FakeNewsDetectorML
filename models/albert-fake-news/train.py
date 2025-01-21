@@ -5,8 +5,8 @@ import pandas as pd
 import torch
 from torch.optim import AdamW
 
-def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+def tokenize_function(data):
+    return tokenizer(data["text"], truncation=True, padding="max_length", max_length=512)
 
 def convert_to_dataset(df):
     return Dataset.from_pandas(df[['text', 'label']])
@@ -47,16 +47,19 @@ train_dataset = train_dataset.map(tokenize_function, batched=True)
 val_dataset = val_dataset.map(tokenize_function, batched=True)
 test_dataset = test_dataset.map(tokenize_function, batched=True)
 
-train_dataset = train_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
-val_dataset = val_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
-test_dataset = test_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
+# train_dataset = train_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
+# val_dataset = val_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
+# test_dataset = test_dataset.with_format("torch", columns=["input_ids", "attention_mask", "label"])
+train_dataset = train_dataset.with_format("torch")
+val_dataset = val_dataset.with_format("torch")
+test_dataset = test_dataset.with_format("torch")
 
 training_args = TrainingArguments(
     output_dir="./outputs",
     eval_strategy="epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=32,
-    per_device_eval_batch_size=32,
+    learning_rate=1e-5,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
     num_train_epochs=3,
     weight_decay=0.01,
     logging_dir="./outputs/logs",
@@ -64,17 +67,8 @@ training_args = TrainingArguments(
     save_total_limit=2,
     fp16=True,
     gradient_accumulation_steps=4
-)
 
-# optimizer = AdamW(model.parameters(), lr=2e-5)
-#
-# num_training_steps = len(train_data) * training_args.num_train_epochs
-#
-# scheduler = get_linear_schedule_with_warmup(
-#     optimizer,
-#     num_warmup_steps=0,
-#     num_training_steps=num_training_steps
-# )
+)
 
 trainer = Trainer(
     model=model,
@@ -82,19 +76,16 @@ trainer = Trainer(
     train_dataset=train_dataset,
     eval_dataset=val_dataset,
     tokenizer=tokenizer,
-    # optimizers= {optimizer, scheduler}
 )
 
 print("Starting training...")
-
-trainer.train()
 
 training_loss = trainer.train().training_loss
 evaluation_loss = trainer.evaluate()['eval_loss']
 preds = trainer.predict(test_dataset)
 report = classification_report(test_dataset["label"], preds.predictions.argmax(-1))
 
-with open("./outputs/roberta-fine-tuned/losses_and_classification.txt", 'w') as f:
+with open("./outputs/albert-fine-tuned/losses_and_classification.txt", 'w') as f:
     f.write(f"Train Loss: {training_loss}\n")
     f.write(f"Eval Loss: {evaluation_loss}\n\n")
     f.write("Classification Report:\n")
