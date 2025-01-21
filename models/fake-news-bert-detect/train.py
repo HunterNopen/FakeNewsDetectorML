@@ -4,8 +4,8 @@ from datasets import Dataset
 import pandas as pd
 import torch
 
-def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+def tokenize_function(data):
+    return tokenizer(data["text"], truncation=True, padding="max_length", max_length=512)
 
 def convert_to_dataset(df):
     return Dataset.from_pandas(df[['text', 'label']])
