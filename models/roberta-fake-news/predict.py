@@ -1,9 +1,12 @@
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 import torch
 
-MODEL_PATH = "models/outputs/roberta-fine-tuned"
-model = RobertaForSequenceClassification.from_pretrained(MODEL_PATH)
-tokenizer = RobertaTokenizer.from_pretrained(MODEL_PATH)
+print("PyTorch version:", torch.__version__)
+print("CUDA available:", torch.cuda.is_available())
+print("CUDA version:", torch.version.cuda)
+
+model = RobertaForSequenceClassification.from_pretrained("./outputs/roberta-fine-tuned/model")
+tokenizer = RobertaTokenizer.from_pretrained("./outputs/roberta-fine-tuned/tokenizer")
 
 def predict(text):
     inputs = tokenizer(text, truncation=True, padding="max_length", max_length=512, return_tensors="pt")

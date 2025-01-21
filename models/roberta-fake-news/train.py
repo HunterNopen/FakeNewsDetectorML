@@ -5,8 +5,8 @@ import pandas as pd
 import torch
 from torch.optim import AdamW
 
-def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=512)
+def tokenize_function(data):
+    return tokenizer(data["text"], truncation=True, padding="max_length", max_length=512)
 
 def convert_to_dataset(df):
     return Dataset.from_pandas(df[['text', 'label']])
@@ -18,6 +18,7 @@ print("CUDA version:", torch.version.cuda)
 print("Getting model...")
 
 MODEL_NAME = "hamzab/roberta-fake-news-classification"
+
 tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
 model = RobertaForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
 
@@ -26,7 +27,7 @@ train_data = pd.read_csv("../../data/processed/train.csv")
 val_data = pd.read_csv("../../data/processed/validation.csv")
 test_data = pd.read_csv("../../data/processed/test.csv")
 
-print(train_data.shape)
+print(f"Data shape: {train_data.shape}")
 
 train_data = train_data.dropna(subset=["text"])
 train_data = train_data[train_data["text"].str.strip() != ""]
@@ -67,32 +68,27 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=4
 )
 
-optimizer = AdamW(model.parameters(), lr=2e-5)
-
-num_training_steps = len(train_data) * training_args.num_train_epochs
-
-scheduler = get_linear_schedule_with_warmup(
-    optimizer,
-    num_warmup_steps=0,
-    num_training_steps=num_training_steps
-)
-
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=train_dataset,
     eval_dataset=val_dataset,
-    tokenizer=tokenizer,
-    optimizers= {optimizer, scheduler}
+    tokenizer=tokenizer
 )
 
 print("Starting training...")
 
-trainer.train()
-
+training_loss = trainer.train().training_loss
+evaluation_loss = trainer.evaluate()['eval_loss']
 preds = trainer.predict(test_dataset)
-print(classification_report(test_dataset["label"], preds.predictions.argmax(-1)))
+report = classification_report(test_dataset["label"], preds.predictions.argmax(-1))
 
-model.save_pretrained("../outputs/roberta-fine-tuned-3-epochs")
+with open("./outputs/roberta-fine-tuned/losses_and_classification.txt", 'w') as f:
+    f.write(f"Train Loss: {training_loss}\n")
+    f.write(f"Eval Loss: {evaluation_loss}\n\n")
+    f.write("Classification Report:\n")
+    f.write(report)
 
-tokenizer.save_pretrained("../outputs/roberta-fine-tuned-tokenizer-3-epochs")
+model.save_pretrained("./outputs/roberta-fine-tuned-3-epoch/model")
+
+tokenizer.save_pretrained("./outputs/roberta-fine-tuned-3-epoch/tokenizer")
